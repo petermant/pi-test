@@ -14,6 +14,7 @@ public class Transaction {
     private UUID sessionKey;
     private UUID cardIdentifier;
     private long amount;
+    private UUID opayoTransactionId;
 
     public Transaction() {}
 
@@ -44,6 +45,18 @@ public class Transaction {
 
     public void setCardIdentifier(final UUID cardIdentifier) {
         this.cardIdentifier = cardIdentifier;
+    }
+
+    public long getAmount() {
+        return amount;
+    }
+
+    public UUID getOpayoTransactionId() {
+        return opayoTransactionId;
+    }
+
+    public void setOpayoTransactionId(final UUID opayoTransactionId) {
+        this.opayoTransactionId = opayoTransactionId;
     }
 
     /**

@@ -9,7 +9,6 @@ import org.springframework.http.MediaType;
 
 import javax.annotation.PostConstruct;
 import java.util.Base64;
-import java.util.Map;
 
 public class AbstractOpayoClient {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -26,7 +25,7 @@ public class AbstractOpayoClient {
         logger.debug("{}: Created base 64 combined key: {}", this.getClass().getSimpleName(), integrationCode);
     }
 
-    HttpEntity<Map<String, String>> createRequest(final Map<String, String> body) {
+    <T> HttpEntity<T> createRequest(final T body) {
         final HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
         httpHeaders.setBasicAuth(integrationCode);

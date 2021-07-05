@@ -1,8 +1,10 @@
 package org.example.controllers;
 
+import org.example.client.dtos.transaction.TransactionResponseDTO;
 import org.example.model.Transaction;
 import org.example.repository.TransactionRepository;
 import org.example.services.PaymentService;
+import org.example.utils.AmountConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +42,11 @@ public class CompletePurchaseController {
             Optional<Transaction> t = transactionRepo.findById(transactionId);
 
             if (t.isPresent()) {
-                paymentService.complete(t.get(), cardIdentifier);
+                final TransactionResponseDTO response = paymentService.complete(t.get(), cardIdentifier);
+
+                // todo I've ended up calling all the ID's by different keys to the Opayo API, by mistake ... maybe make them the same
+                model.addAttribute("amount", AmountConverter.convertToPounds(t.get().getAmount()));
+                model.addAttribute("paymentId", response.getTransactionId());
 
                 return "purchase-completed";
             } else {

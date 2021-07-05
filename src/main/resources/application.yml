@@ -10,6 +10,7 @@ logging:
 opayo:
   uri:
     session-key: https://pi-test.sagepay.com/api/v1/merchant-session-keys
+    transaction: https://pi-test.sagepay.com/api/v1/transactions
   integration:
     vendor-name: sandbox
     key: hJYxsw7HLbj40cB8udES8CDRFLhuJ8G54O6rDpUXvE6hYDrria

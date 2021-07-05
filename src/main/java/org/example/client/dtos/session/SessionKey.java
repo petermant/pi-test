@@ -1,4 +1,4 @@
-package org.example.client.dtos;
+package org.example.client.dtos.session;
 
 import java.sql.Timestamp;
 import java.util.Objects;

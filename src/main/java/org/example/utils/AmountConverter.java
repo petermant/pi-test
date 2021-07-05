@@ -12,4 +12,8 @@ public class AmountConverter {
             throw new RuntimeException("Invalid format for amount. Type was " + amountStr.getClass());
         }
     }
+
+    public static String convertToPounds(final long amount) {
+        return new BigDecimal(amount).scaleByPowerOfTen(-2).toString();
+    }
 }
