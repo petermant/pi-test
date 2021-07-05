@@ -15,12 +15,13 @@
 <body>
 <main>
     <h1>My Test Shop</h1>
-    <form>
-        <h2>Payment Details</h2>
+    <form method="POST">
+        <h2 th:inline="text">Payment Details for £[[${amount}]]</h2>
         <div id="sp-container"></div>
         <div id="submit-container">
             <button type="submit">Make Payment</button>
         </div>
+        <input type="hidden" name="transactionId" th:value="${transactionId}">
     </form>
 </main>
 <script th:inline="javascript"> sagepayCheckout({ merchantSessionKey: [[${merchantSessionKey}]] }).form();</script>
