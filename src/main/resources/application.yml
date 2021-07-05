@@ -4,3 +4,13 @@ spring:
 logging:
   level:
     web: DEBUG
+    org:
+      example: DEBUG
+
+opayo:
+  uri:
+    session-key: https://pi-test.sagepay.com/api/v1/merchant-session-keys
+  integration:
+    vendor-name: sandbox
+    key: hJYxsw7HLbj40cB8udES8CDRFLhuJ8G54O6rDpUXvE6hYDrria
+    password: o2iHSrFybYMZpmWOQMuhsXP52V4fBtpuSDshrKDSWsBY1OiN6hwd9Kb12z4j5Us5u

@@ -1,7 +1,9 @@
 package org.example.controllers;
 
+import org.example.client.MerchantSessionClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +19,8 @@ public class CheckoutController {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    @Autowired private MerchantSessionClient sessionClient;
+
     @GetMapping("/checkout")
     public String checkout(@RequestParam Map<String,String> allParams,
                            Model model) {
@@ -28,7 +32,7 @@ public class CheckoutController {
             model.addAttribute("errorMessage", allParams.get(ERROR_MESSAGE));
             return "api-error";
         } else {
-            model.addAttribute("merchantSessionKey", "F42164DA-4A10-4060-AD04-F6101821EFC3");
+            model.addAttribute("merchantSessionKey", sessionClient.getSessionKey().getMerchantSessionKey());
             return "checkout";
         }
     }
