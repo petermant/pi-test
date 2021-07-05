@@ -13,11 +13,13 @@ public class Transaction {
     private UUID id;
     private UUID sessionKey;
     private UUID cardIdentifier;
+    private long amount;
 
     public Transaction() {}
 
-    public Transaction(UUID sessionKey) {
+    public Transaction(UUID sessionKey, long amount) {
         this.sessionKey = sessionKey;
+        this.amount = amount;
     }
 
     public UUID getId() {

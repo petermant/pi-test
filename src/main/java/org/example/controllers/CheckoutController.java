@@ -3,6 +3,7 @@ package org.example.controllers;
 import org.example.client.MerchantSessionClient;
 import org.example.model.Transaction;
 import org.example.repository.TransactionRepository;
+import org.example.utils.AmountConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,14 +44,18 @@ public class CheckoutController {
         } else {
             UUID merchantSessionKey = sessionClient.getSessionKey().getMerchantSessionKey();
 
+            final Object amountStr = body.get("amount").get(0);
+            final long amount = AmountConverter.parseAmount(amountStr);
+
             // todo this is currently a bit dumb, in that every time you refresh the page you get a new transaction
-            Transaction t = transactionRepo.save(new Transaction(merchantSessionKey));
+            Transaction t = transactionRepo.save(new Transaction(merchantSessionKey, amount));
             model.addAttribute("merchantSessionKey", merchantSessionKey);
             model.addAttribute("transactionId", t.getId());
 
-            final Object amount = body.get("amount").get(0);
-            model.addAttribute("amount", amount);
-            logger.debug("Rendering checkout page with session key");
+            // added as the original amount, unparsed, i.e. show 10.00 not 1000
+            model.addAttribute("amount", amountStr);
+
+            logger.debug("Rendering checkout page with session key, for amount {}", amount);
             return "checkout";
         }
     }
