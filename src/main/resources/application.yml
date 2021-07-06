@@ -7,10 +7,16 @@ logging:
     org:
       example: DEBUG
 
+org:
+  example:
+    3DSecureACSRedirect: https://ae701c1c1fea.ngrok.io/3DSecure/response
+
 opayo:
   uri:
     session-key: https://pi-test.sagepay.com/api/v1/merchant-session-keys
     transaction: https://pi-test.sagepay.com/api/v1/transactions
+    three-d-secure:
+      fallback-complete: https://pi-test.opayo.cloud/api/v1/transactions/{transactionId}/3d-secure
   integration:
     vendor-name: sandbox
     key: hJYxsw7HLbj40cB8udES8CDRFLhuJ8G54O6rDpUXvE6hYDrria

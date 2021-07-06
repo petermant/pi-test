@@ -21,7 +21,7 @@
         <div id="submit-container">
             <button type="submit">Make Payment</button>
         </div>
-        <input type="hidden" name="transactionId" th:value="${transactionId}">
+        <input type="hidden" name="myTransactionId" th:value="${myTransactionId}">
     </form>
 </main>
 <script th:inline="javascript"> sagepayCheckout({ merchantSessionKey: [[${merchantSessionKey}]] }).form();</script>

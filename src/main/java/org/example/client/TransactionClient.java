@@ -1,5 +1,7 @@
 package org.example.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.client.dtos.transaction.TransactionRequestDTO;
 import org.example.client.dtos.transaction.TransactionResponseDTO;
 import org.example.model.Transaction;
@@ -8,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @Component
@@ -22,16 +25,26 @@ public class TransactionClient extends AbstractOpayoClient {
 
         final HttpEntity<TransactionRequestDTO> httpEntity = createRequest(requestDTO);
 
-        ResponseEntity<TransactionResponseDTO> response = restTemplate.postForEntity(transactionURI, httpEntity, TransactionResponseDTO.class);
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(transactionURI, httpEntity, String.class);
+            TransactionResponseDTO responseDTO;
+            try {
+                responseDTO = new ObjectMapper().readValue(response.getBody(), TransactionResponseDTO.class);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
 
-        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-            logger.debug("Transaction request response: {} with {}", response.getStatusCode());
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                logger.debug("Transaction request response: {} with {}", response.getStatusCode(), response.getBody());
 
-            return response.getBody();
-        } else {
-            logger.error("{} error requesting payment transaction. Http response object: {}", response.getStatusCode(), response);
+                return responseDTO;
+            } else {
+                throw new RuntimeException("Transaction request was unsuccessful: " + response.getStatusCode());
+            }
+        } catch (HttpClientErrorException hce) {
+            logger.error("{} error requesting payment transaction. Response body: {}", hce.getStatusCode(), hce.getResponseBodyAsString());
             // todo think about error pathway here - something more graceful...
-            throw new RuntimeException("Error requesting transaction");
+            throw new RuntimeException("Client error requesting transaction");
         }
     }
 }

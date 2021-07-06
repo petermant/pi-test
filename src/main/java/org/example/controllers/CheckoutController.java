@@ -50,7 +50,7 @@ public class CheckoutController {
             // todo this is currently a bit dumb, in that every time you refresh the page you get a new transaction
             Transaction t = transactionRepo.save(new Transaction(merchantSessionKey, amount));
             model.addAttribute("merchantSessionKey", merchantSessionKey);
-            model.addAttribute("transactionId", t.getId());
+            model.addAttribute("myTransactionId", t.getId());
 
             // added as the original amount, unparsed, i.e. show 10.00 not 1000
             model.addAttribute("amount", amountStr);

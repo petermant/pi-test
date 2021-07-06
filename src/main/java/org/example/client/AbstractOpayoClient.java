@@ -10,7 +10,7 @@ import org.springframework.http.MediaType;
 import javax.annotation.PostConstruct;
 import java.util.Base64;
 
-public class AbstractOpayoClient {
+public abstract class AbstractOpayoClient {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Value("${opayo.integration.key}") private String integrationKey;

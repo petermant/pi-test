@@ -1,0 +1,6 @@
+<form id="pa-form" method="post" th:action="${response.getAcsUrl()}">
+    <input type="hidden" name="PaReq" th:value="${response.getPaReq()}">
+    <input type="hidden" name="TermUrl" th:value="${threeDSResponseEndpoint}">
+    <input type="hidden" name="MD" th:value="${myTransactionId}">
+</form>
+<script>document.addEventListener("DOMContentLoaded",function(){var b=document.getElementById("pa-form");b&&b.submit()})</script>

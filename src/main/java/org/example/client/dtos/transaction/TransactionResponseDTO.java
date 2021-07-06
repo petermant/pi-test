@@ -1,6 +1,7 @@
 package org.example.client.dtos.transaction;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.UUID;
 
@@ -12,6 +13,12 @@ public class TransactionResponseDTO {
     private String statusCode;
     private String statusDetail;
     private String retrievalReference;
+
+    @JsonProperty("3DSecure")
+    private ThreeDSecure threeDSecure;
+
+    private String acsUrl;
+    private String paReq;
 
     // todo add other attributes when they are useful - from Step 2 here: https://developer-eu.elavon.com/docs/opayo/submit-payments-your-server
 
@@ -61,5 +68,29 @@ public class TransactionResponseDTO {
 
     public void setRetrievalReference(final String retrievalReference) {
         this.retrievalReference = retrievalReference;
+    }
+
+    public ThreeDSecure getThreeDSecure() {
+        return threeDSecure;
+    }
+
+    public void setThreeDSecure(final ThreeDSecure threeDSecure) {
+        this.threeDSecure = threeDSecure;
+    }
+
+    public String getAcsUrl() {
+        return acsUrl;
+    }
+
+    public void setAcsUrl(final String acsUrl) {
+        this.acsUrl = acsUrl;
+    }
+
+    public String getPaReq() {
+        return paReq;
+    }
+
+    public void setPaReq(final String paReq) {
+        this.paReq = paReq;
     }
 }

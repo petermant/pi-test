@@ -8,6 +8,7 @@ import org.example.utils.AmountConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -27,27 +28,39 @@ public class CompletePurchaseController {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private static final String TRANSACTION_ID = "transactionId";
+    private static final String TRANSACTION_ID = "myTransactionId";
     private static final String CARD_ID = "card-identifier";
 
     @Autowired private TransactionRepository transactionRepo;
     @Autowired private PaymentService paymentService;
+
+    @Value("${org.example.3DSecureACSRedirect}") private String threeDSecureResponseEndpoint;
 
     @PostMapping(path = "/complete-purchase", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     public String completePurchase(@RequestBody MultiValueMap<String, Object> body, Model model) {
 
         // todo other validation needed here as well, e.g. card-identifier missing, tx ID not a valid UUID, etc
         if (body.containsKey(TRANSACTION_ID)) {
-            UUID transactionId = UUID.fromString((String)body.getFirst(TRANSACTION_ID));
+            UUID myTransactionId = UUID.fromString((String)body.getFirst(TRANSACTION_ID));
             UUID cardIdentifier = UUID.fromString((String)body.getFirst(CARD_ID));
 
-            logger.debug("Purchase complete requested for transaction {}", transactionId);
-            Optional<Transaction> t = transactionRepo.findById(transactionId);
+            logger.debug("Purchase complete requested for transaction {}", myTransactionId);
+            Optional<Transaction> t = transactionRepo.findById(myTransactionId);
 
             if (t.isPresent()) {
                 final TransactionResponseDTO response = paymentService.complete(t.get(), cardIdentifier);
 
-                return "redirect:/purchase-completed?transactionId=" + t.get().getId();
+                if ("2007".equals(response.getStatusCode()) && "3DAuth".equals(response.getStatus())) {
+                    logger.debug("Purchase completed with 3DAuth required {}, generating fallback form with ACS URL {}", response.getStatusCode(), response.getAcsUrl());
+
+                    model.addAttribute("response", response);
+                    model.addAttribute("threeDSResponseEndpoint", threeDSecureResponseEndpoint);
+                    model.addAttribute(TRANSACTION_ID, myTransactionId);
+                    return "3DSecure/fallback-request-form";
+                } else {
+                    logger.debug("Purchase completed with 3DSecure status {}, redirecting to purchase completed.", response.getThreeDSecure());
+                    return "redirect:/purchase-completed?myTransactionId=" + t.get().getId();
+                }
             } else {
                 return "purchase-not-found";
             }
@@ -59,14 +72,13 @@ public class CompletePurchaseController {
     }
 
     @GetMapping("/purchase-completed")
-    public String purchaseCompleted(@RequestParam("transactionId") UUID transactionId, Model model) {
-        logger.debug("Purchase completed for transaction {}", transactionId);
-        Optional<Transaction> t = transactionRepo.findById(transactionId);
+    public String purchaseCompleted(@RequestParam("myTransactionId") UUID myTransactionId, Model model) {
+        logger.debug("Purchase completed for transaction {}", myTransactionId);
+        Optional<Transaction> t = transactionRepo.findById(myTransactionId);
 
         if (t.isPresent()) {
-            // todo I've ended up calling all the ID's by different keys to the Opayo API, by mistake ... maybe make them the same
             model.addAttribute("amount", AmountConverter.convertToPounds(t.get().getAmount()));
-            model.addAttribute("paymentId", t.get().getOpayoTransactionId());
+            model.addAttribute("opayoTransactionId", t.get().getOpayoTransactionId());
 
             return "purchase-completed";
         } else {

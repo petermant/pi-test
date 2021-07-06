@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Payment Form</title>
+    <title>Purchase completed</title>
     <script src="https://pi-test.sagepay.com/api/v1/js/sagepay.js"></script>
     <style>
     body * { font-family: sans-serif; }
@@ -16,7 +16,7 @@
 <main>
     <h1>My Test Shop</h1>
     <h2 th:inline="text">Payment successful for £[[${amount}]]</h2>
-    <p th:inline="text">Payment ID [[${paymentId}]]</p>
+    <p th:inline="text">Opayo Transaction ID [[${opayoTransactionId}]]</p>
 </main>
 </body>
 </html>
