@@ -8,12 +8,16 @@ import org.example.utils.AmountConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -30,8 +34,7 @@ public class CompletePurchaseController {
     @Autowired private PaymentService paymentService;
 
     @PostMapping(path = "/complete-purchase", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
-    public String completePurchase(@RequestBody MultiValueMap<String, Object> body,
-                                   Model model) {
+    public String completePurchase(@RequestBody MultiValueMap<String, Object> body, Model model) {
 
         // todo other validation needed here as well, e.g. card-identifier missing, tx ID not a valid UUID, etc
         if (body.containsKey(TRANSACTION_ID)) {
@@ -44,11 +47,7 @@ public class CompletePurchaseController {
             if (t.isPresent()) {
                 final TransactionResponseDTO response = paymentService.complete(t.get(), cardIdentifier);
 
-                // todo I've ended up calling all the ID's by different keys to the Opayo API, by mistake ... maybe make them the same
-                model.addAttribute("amount", AmountConverter.convertToPounds(t.get().getAmount()));
-                model.addAttribute("paymentId", response.getTransactionId());
-
-                return "purchase-completed";
+                return "redirect:/purchase-completed?transactionId=" + t.get().getId();
             } else {
                 return "purchase-not-found";
             }
@@ -56,6 +55,22 @@ public class CompletePurchaseController {
             model.addAttribute("errorCode", -1);
             model.addAttribute("errorMessage", "Transaction ID missing from request");
             return "api-error";
+        }
+    }
+
+    @GetMapping("/purchase-completed")
+    public String purchaseCompleted(@RequestParam("transactionId") UUID transactionId, Model model) {
+        logger.debug("Purchase completed for transaction {}", transactionId);
+        Optional<Transaction> t = transactionRepo.findById(transactionId);
+
+        if (t.isPresent()) {
+            // todo I've ended up calling all the ID's by different keys to the Opayo API, by mistake ... maybe make them the same
+            model.addAttribute("amount", AmountConverter.convertToPounds(t.get().getAmount()));
+            model.addAttribute("paymentId", t.get().getOpayoTransactionId());
+
+            return "purchase-completed";
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
         }
     }
 }
