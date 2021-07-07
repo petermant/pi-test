@@ -9,15 +9,18 @@ logging:
 
 org:
   example:
-    3DSecureACSRedirect: https://ae701c1c1fea.ngrok.io/3DSecure/response
+    3DSecureACSRedirect: https://68fb0b6be306.ngrok.io/3DSecure/response/v1
 
 opayo:
   uri:
-    session-key: https://pi-test.sagepay.com/api/v1/merchant-session-keys
-    transaction: https://pi-test.sagepay.com/api/v1/transactions
+    session-key: https://test.sagepay.com/api/v1/merchant-session-keys
+    transaction: https://test.sagepay.com/api/v1/transactions
     three-d-secure:
-      fallback-complete: https://pi-test.opayo.cloud/api/v1/transactions/{transactionId}/3d-secure
+      fallback-complete: https://test.sagepay.com/api/v1/transactions/{transactionId}/3d-secure
   integration:
-    vendor-name: sandbox
-    key: hJYxsw7HLbj40cB8udES8CDRFLhuJ8G54O6rDpUXvE6hYDrria
-    password: o2iHSrFybYMZpmWOQMuhsXP52V4fBtpuSDshrKDSWsBY1OiN6hwd9Kb12z4j5Us5u
+#    vendor-name: sandbox
+#    key: hJYxsw7HLbj40cB8udES8CDRFLhuJ8G54O6rDpUXvE6hYDrria
+#    password: o2iHSrFybYMZpmWOQMuhsXP52V4fBtpuSDshrKDSWsBY1OiN6hwd9Kb12z4j5Us5u
+    vendor-name: protxross
+    key: F9yNejL2ifBryzzKQ501Js19Q41cmTflhNiVVkYJSEa8h2jai3
+    password: IzKMysw81bWowamFw3uHkGc8CaDJgbCG1Wnn3WDBPT19kEN92WAPQYt8GsiqME348

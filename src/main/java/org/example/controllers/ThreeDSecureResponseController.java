@@ -1,8 +1,10 @@
 package org.example.controllers;
 
 import org.example.client.ThreeDSecureClient;
+import org.example.client.dtos.transaction.TransactionResponseDTO;
 import org.example.model.Transaction;
 import org.example.repository.TransactionRepository;
+import org.example.utils.AmountConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,7 @@ public class ThreeDSecureResponseController {
     @Autowired private ThreeDSecureClient threeDSecureClient;
     @Autowired private TransactionRepository transactionRepo;
 
-    @PostMapping("/3DSecure/response")
+    @PostMapping("/3DSecure/response/v1")
     public String responseTo3DSecure(
             @RequestParam("PaRes") String paRes,
             @RequestParam("MD") String md,
@@ -30,8 +32,12 @@ public class ThreeDSecureResponseController {
 
         Optional<Transaction> t = transactionRepo.findById(UUID.fromString(md));
 
-        threeDSecureClient.fallbackComplete(t.get().getOpayoTransactionId(), paRes);
+        TransactionResponseDTO responseDTO = threeDSecureClient.fallbackComplete(t.get().getOpayoTransactionId(), paRes);
 
-        return "3DSecureResponse";
+        model.addAttribute("amount", AmountConverter.convertToPounds(t.get().getAmount()));
+        model.addAttribute("opayoTransactionId", t.get().getOpayoTransactionId());
+        model.addAttribute("avsStatus", responseDTO.getAvsCvcCheck().getStatus());
+
+        return "3DSecure/3d-secure-v1-response";
     }
 }

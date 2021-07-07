@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Purchase completed - 3D secure v1</title>
+    <script src="https://pi-test.sagepay.com/api/v1/js/sagepay.js"></script>
+    <style>
+    body * { font-family: sans-serif; }
+    h1 { } input { font-size:12pt; }
+    #main { width: 550px; margin: 0 auto; }
+    #submit-container { padding-top:10px; float:right; }
+    button[type=submit] { border:none; background:indigo; padding:10px; color:white; border-radius:5px; }
+ </style>
+    <meta charset="UTF-8">
+</head>
+<body>
+<main>
+    <h1>My Test Shop</h1>
+    <h2 th:inline="text">Payment successful for £[[${amount}]], with 3D secure V1</h2>
+    <p th:inline="text">Opayo Transaction ID: [[${opayoTransactionId}]]</p>
+    <p th:inline="text">AVS Status: [[${avsStatus}]]</p>
+</main>
+</body>
+</html>

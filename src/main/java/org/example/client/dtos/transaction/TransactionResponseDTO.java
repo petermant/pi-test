@@ -17,6 +17,7 @@ public class TransactionResponseDTO {
     @JsonProperty("3DSecure")
     private ThreeDSecure threeDSecure;
 
+    private AvsCvcCheck avsCvcCheck;
     private String acsUrl;
     private String paReq;
 
@@ -92,5 +93,29 @@ public class TransactionResponseDTO {
 
     public void setPaReq(final String paReq) {
         this.paReq = paReq;
+    }
+
+    public AvsCvcCheck getAvsCvcCheck() {
+        return avsCvcCheck;
+    }
+
+    public void setAvsCvcCheck(final AvsCvcCheck avsCvcCheck) {
+        this.avsCvcCheck = avsCvcCheck;
+    }
+
+    @Override
+    public String toString() {
+        return "TransactionResponseDTO{" +
+                "transactionId=" + transactionId +
+                ", transactionType='" + transactionType + '\'' +
+                ", status='" + status + '\'' +
+                ", statusCode='" + statusCode + '\'' +
+                ", statusDetail='" + statusDetail + '\'' +
+                ", retrievalReference='" + retrievalReference + '\'' +
+                ", threeDSecure=" + threeDSecure +
+                ", avsCvcCheck=" + avsCvcCheck +
+                ", acsUrl='" + acsUrl + '\'' +
+                ", paReq='" + paReq + '\'' +
+                '}';
     }
 }

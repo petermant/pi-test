@@ -2,6 +2,7 @@ package org.example.client;
 
 import org.example.client.dtos.session.SessionKey;
 import org.example.client.dtos.transaction.ThreeDSecure;
+import org.example.client.dtos.transaction.TransactionResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -18,12 +19,13 @@ import java.util.UUID;
 public class ThreeDSecureClient extends AbstractOpayoClient {
 
     @Autowired private RestTemplate restTemplate;
+    @Autowired private TransactionClient transactionClient;
 
     @Value("${opayo.uri.three-d-secure.fallback-complete}") private String threeDSecureFallbackCompleteURI;
 
-    public String fallbackComplete(UUID transactionId, String paRes) {
+    public TransactionResponseDTO fallbackComplete(UUID transactionId, String paRes) {
         final Map<String, String> body = Collections.singletonMap("paRes", paRes);
-        final Map<String, String> uriParams = Collections.singletonMap("transactionId", transactionId.toString());
+        final Map<String, String> uriParams = Collections.singletonMap("transactionId", transactionId.toString().toUpperCase());
         final HttpEntity<Map<String, String>> httpEntity = createRequest(body);
 
         ResponseEntity<ThreeDSecure> response;
@@ -31,13 +33,20 @@ public class ThreeDSecureClient extends AbstractOpayoClient {
         try {
             response = restTemplate.postForEntity(threeDSecureFallbackCompleteURI, httpEntity, ThreeDSecure.class, uriParams);
         } catch (HttpClientErrorException hce) {
+            // this is (probably?) not possible as get API doesn't allow access to in-flight transactions
+//            try {
+//                logger.debug("Tried to get transaction, response was {}", transactionClient.getTransaction(transactionId));
+//            } catch (Exception e) {
+//                logger.error("Couldn't get details with Opayo TX ID", e);
+//            }
+
             throw new RuntimeException("Error completing 3D Secure fallback", hce);
         }
 
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-            logger.debug("Fallback complete http response: {} with expiry {}", response.getStatusCode(), response.getBody().getStatus());
+            logger.debug("Fallback complete http response: {} with status {}", response.getStatusCode(), response.getBody().getStatus());
 
-            return response.getBody().getStatus();
+            return transactionClient.getTransaction(transactionId);
         } else {
             logger.error("{} error retrieving 3DSecure fallback status. Http response object: {}", response.getStatusCode(), response);
             throw new RuntimeException("Error retrieving 3DSecure fallback status");

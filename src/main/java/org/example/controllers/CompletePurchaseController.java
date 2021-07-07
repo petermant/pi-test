@@ -1,5 +1,6 @@
 package org.example.controllers;
 
+import org.example.client.TransactionClient;
 import org.example.client.dtos.transaction.TransactionResponseDTO;
 import org.example.model.Transaction;
 import org.example.repository.TransactionRepository;
@@ -33,6 +34,7 @@ public class CompletePurchaseController {
 
     @Autowired private TransactionRepository transactionRepo;
     @Autowired private PaymentService paymentService;
+    @Autowired private TransactionClient transactionClient;
 
     @Value("${org.example.3DSecureACSRedirect}") private String threeDSecureResponseEndpoint;
 
@@ -57,6 +59,8 @@ public class CompletePurchaseController {
                     model.addAttribute("threeDSResponseEndpoint", threeDSecureResponseEndpoint);
                     model.addAttribute(TRANSACTION_ID, myTransactionId);
                     return "3DSecure/fallback-request-form";
+                } else if ("2021".equals(response.getStatusCode()) && "3DAuth".equals(response.getStatus())) {
+                    throw new RuntimeException("TBD - 3DS v2");
                 } else {
                     logger.debug("Purchase completed with 3DSecure status {}, redirecting to purchase completed.", response.getThreeDSecure());
                     return "redirect:/purchase-completed?myTransactionId=" + t.get().getId();
@@ -77,6 +81,12 @@ public class CompletePurchaseController {
         Optional<Transaction> t = transactionRepo.findById(myTransactionId);
 
         if (t.isPresent()) {
+            try {
+                logger.debug("Tried to get transaction, response was {}", transactionClient.getTransaction(t.get().getOpayoTransactionId()));
+            } catch (Exception e) {
+                logger.error("Couldn't get details with Opayo TX ID", e);
+            }
+
             model.addAttribute("amount", AmountConverter.convertToPounds(t.get().getAmount()));
             model.addAttribute("opayoTransactionId", t.get().getOpayoTransactionId());
 

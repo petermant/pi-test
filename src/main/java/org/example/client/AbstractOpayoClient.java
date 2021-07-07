@@ -30,6 +30,6 @@ public abstract class AbstractOpayoClient {
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
         httpHeaders.setBasicAuth(integrationCode);
 
-        return new HttpEntity<>(body, httpHeaders);
+        return body == null ? new HttpEntity<>(httpHeaders) : new HttpEntity<>(body, httpHeaders);
     }
 }
