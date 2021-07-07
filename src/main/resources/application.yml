@@ -9,13 +9,15 @@ logging:
 
 org:
   example:
-    3DSecureACSRedirect: https://68fb0b6be306.ngrok.io/3DSecure/response/v1
+    3DSecureACSRedirectV1: https://68fb0b6be306.ngrok.io/3DSecure/response/v1
+    3DSecureACSRedirectV2: https://68fb0b6be306.ngrok.io/3DSecure/response/v2
 
 opayo:
   uri:
     session-key: https://test.sagepay.com/api/v1/merchant-session-keys
     transaction: https://test.sagepay.com/api/v1/transactions
     three-d-secure:
+      challenge-complete: https://test.sagepay.com/api/v1/transactions/{transactionId}/3d-secure-challenge
       fallback-complete: https://test.sagepay.com/api/v1/transactions/{transactionId}/3d-secure
   integration:
 #    vendor-name: sandbox

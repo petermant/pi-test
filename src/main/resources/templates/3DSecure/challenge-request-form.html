@@ -1,0 +1,5 @@
+<form id="pa-form" method="post" th:action="${response.getAcsUrl()}">
+    <input type="hidden" name="creq" th:value="${response.getcReq()}">
+    <input type="hidden" name="threeDSSessionData" th:value="${myTransactionId}">
+</form>
+<script>document.addEventListener("DOMContentLoaded",function(){var b=document.getElementById("pa-form");b&&b.submit()})</script>

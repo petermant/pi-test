@@ -21,7 +21,36 @@ public class ThreeDSecureClient extends AbstractOpayoClient {
     @Autowired private RestTemplate restTemplate;
     @Autowired private TransactionClient transactionClient;
 
+    @Value("${opayo.uri.three-d-secure.challenge-complete}") private String threeDSecureChallengeCompleteURI;
     @Value("${opayo.uri.three-d-secure.fallback-complete}") private String threeDSecureFallbackCompleteURI;
+
+    public TransactionResponseDTO challengeComplete(UUID transactionId, String cres) {
+        final Map<String, String> body = Collections.singletonMap("cRes", cres);
+        final Map<String, String> uriParams = Collections.singletonMap("transactionId", transactionId.toString().toUpperCase());
+        final HttpEntity<Map<String, String>> httpEntity = createRequest(body);
+
+        try {
+            ResponseEntity<TransactionResponseDTO> response = restTemplate.postForEntity(threeDSecureChallengeCompleteURI, httpEntity, TransactionResponseDTO.class, uriParams);
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                logger.debug("Challenge complete http response: {} with status {}", response.getStatusCode(), response.getBody().getStatus());
+
+                return response.getBody();
+            } else {
+                logger.error("{} error retrieving 3DSecure challenge status. Http response object: {}", response.getStatusCode(), response);
+                throw new RuntimeException("Error retrieving 3DSecure challenge status");
+            }
+        } catch (HttpClientErrorException hce) {
+            // this is (probably?) not possible as get API doesn't allow access to in-flight transactions
+//            try {
+//                logger.debug("Tried to get transaction, response was {}", transactionClient.getTransaction(transactionId));
+//            } catch (Exception e) {
+//                logger.error("Couldn't get details with Opayo TX ID", e);
+//            }
+
+            throw new RuntimeException("Error completing 3D Secure challenge", hce);
+        }
+    }
 
     public TransactionResponseDTO fallbackComplete(UUID transactionId, String paRes) {
         final Map<String, String> body = Collections.singletonMap("paRes", paRes);

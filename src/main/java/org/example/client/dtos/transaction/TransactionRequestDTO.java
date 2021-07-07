@@ -19,13 +19,13 @@ public class TransactionRequestDTO {
     private final BillingAddress billingAddress = new BillingAddress("1 Main Street", "Some city", "AB1 CD2", "GB");
     private final StrongCustomerAuthentication strongCustomerAuthentication;
 
-    public TransactionRequestDTO(Transaction t) {
+    public TransactionRequestDTO(Transaction t, final String notificationURL) {
         vendorTxCode = t.getId();
         amount = t.getAmount();
         // todo hard coding to 'card' payment method for now - what others are available?
         paymentMethod = Collections.singletonMap("card", new PaymentMethod(t.getSessionKey(), t.getCardIdentifier()));
         description = "Pete's PI integration demo app tx for £" + AmountConverter.convertToPounds(amount);
-        strongCustomerAuthentication = new StrongCustomerAuthentication();
+        strongCustomerAuthentication = new StrongCustomerAuthentication(notificationURL);
     }
 
     public String getTransactionType() {

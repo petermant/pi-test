@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,7 +38,7 @@ public class CompletePurchaseController {
     @Autowired private PaymentService paymentService;
     @Autowired private TransactionClient transactionClient;
 
-    @Value("${org.example.3DSecureACSRedirect}") private String threeDSecureResponseEndpoint;
+    @Value("${org.example.3DSecureACSRedirectV1}") private String threeDSecureV1ResponseEndpoint;
 
     @PostMapping(path = "/complete-purchase", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     public String completePurchase(@RequestBody MultiValueMap<String, Object> body, Model model) {
@@ -56,11 +58,16 @@ public class CompletePurchaseController {
                     logger.debug("Purchase completed with 3DAuth required {}, generating fallback form with ACS URL {}", response.getStatusCode(), response.getAcsUrl());
 
                     model.addAttribute("response", response);
-                    model.addAttribute("threeDSResponseEndpoint", threeDSecureResponseEndpoint);
+                    model.addAttribute("threeDSResponseEndpoint", threeDSecureV1ResponseEndpoint);
                     model.addAttribute(TRANSACTION_ID, myTransactionId);
                     return "3DSecure/fallback-request-form";
                 } else if ("2021".equals(response.getStatusCode()) && "3DAuth".equals(response.getStatus())) {
-                    throw new RuntimeException("TBD - 3DS v2");
+                    logger.debug("Purchase completed with 3DAuth required {}, generating fallback form with ACS URL {}", response.getStatusCode(), response.getAcsUrl());
+
+                    model.addAttribute("response", response);
+                    model.addAttribute(TRANSACTION_ID, Base64.getEncoder().encodeToString(myTransactionId.toString().getBytes(StandardCharsets.UTF_8)));
+
+                    return "3DSecure/challenge-request-form";
                 } else {
                     logger.debug("Purchase completed with 3DSecure status {}, redirecting to purchase completed.", response.getThreeDSecure());
                     return "redirect:/purchase-completed?myTransactionId=" + t.get().getId();
@@ -87,8 +94,11 @@ public class CompletePurchaseController {
                 logger.error("Couldn't get details with Opayo TX ID", e);
             }
 
+            final TransactionResponseDTO responseDTO = transactionClient.getTransaction(t.get().getOpayoTransactionId());
+
             model.addAttribute("amount", AmountConverter.convertToPounds(t.get().getAmount()));
             model.addAttribute("opayoTransactionId", t.get().getOpayoTransactionId());
+            model.addAttribute("avsStatus", responseDTO.getAvsCvcCheck().getStatus());
 
             return "purchase-completed";
         } else {

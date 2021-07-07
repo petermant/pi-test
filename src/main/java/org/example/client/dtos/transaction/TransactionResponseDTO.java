@@ -20,6 +20,7 @@ public class TransactionResponseDTO {
     private AvsCvcCheck avsCvcCheck;
     private String acsUrl;
     private String paReq;
+    private String cReq;
 
     // todo add other attributes when they are useful - from Step 2 here: https://developer-eu.elavon.com/docs/opayo/submit-payments-your-server
 
@@ -95,6 +96,14 @@ public class TransactionResponseDTO {
         this.paReq = paReq;
     }
 
+    public String getcReq() {
+        return cReq;
+    }
+
+    public void setcReq(final String cReq) {
+        this.cReq = cReq;
+    }
+
     public AvsCvcCheck getAvsCvcCheck() {
         return avsCvcCheck;
     }
@@ -116,6 +125,7 @@ public class TransactionResponseDTO {
                 ", avsCvcCheck=" + avsCvcCheck +
                 ", acsUrl='" + acsUrl + '\'' +
                 ", paReq='" + paReq + '\'' +
+                ", cReq='" + cReq + '\'' +
                 '}';
     }
 }

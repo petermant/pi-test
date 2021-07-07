@@ -16,7 +16,8 @@
 <main>
     <h1>My Test Shop</h1>
     <h2 th:inline="text">Payment successful for £[[${amount}]]</h2>
-    <p th:inline="text">Opayo Transaction ID [[${opayoTransactionId}]]</p>
+    <p th:inline="text">Opayo Transaction ID: [[${opayoTransactionId}]]</p>
+    <p th:inline="text">AVS Status: [[${avsStatus}]]</p>
 </main>
 </body>
 </html>

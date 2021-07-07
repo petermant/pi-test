@@ -3,7 +3,7 @@ package org.example.client.dtos.transaction;
 /** TODO the online documentation for this object is hard to find ... copying hard-coded values for now, for sake of getting broader process working */
 public class StrongCustomerAuthentication {
     private final String website = "https://mydomain.com";
-    private final String notificationURL = "https://notification.url";
+    private final String notificationURL;
     private final String browserIP = "10.68.21.21";
     private final String browserAcceptHeader = "text/html, application/json";
     private final boolean browserJavascriptEnabled = true;
@@ -19,6 +19,10 @@ public class StrongCustomerAuthentication {
     private final boolean requestSCAExemption = false;
     private final String transType = "GoodsAndServicePurchase";
     private final String threeDSRequestorDecReqInd = "N";
+
+    public StrongCustomerAuthentication(final String notificationURL) {
+        this.notificationURL = notificationURL;
+    }
 
     public String getWebsite() {
         return website;
