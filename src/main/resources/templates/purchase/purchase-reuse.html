@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Start new purchase with existing card</title>
+    <style>
+        body * { font-family: sans-serif; }
+        h1 { } input { font-size:12pt; }
+        #main { width: 550px; margin: 0 auto; }
+        #submit-container { padding-top:10px; float:right; }
+        button[type=submit] { border:none; background:indigo; padding:10px; color:white; border-radius:5px; }
+    </style>
+    <meta charset="UTF-8">
+</head>
+<body>
+<main>
+    <h1>My Test Shop</h1>
+    <form action="/checkout/re-use" method="post">
+        <h2>Start new purchase with existing card details</h2>
+
+        <div>TX identifier: <span th:text="${tx.id}"></span></div>
+        <div>&nbsp;</div>
+        <div>Card identifier: <span th:text="${tx.cardIdentifier}"></span></div>
+        <div>&nbsp;</div>
+
+        <div class="form-group">
+            <div class="label-column"><label>How much do you want to spend?</label></div>
+            <div class="input-column">
+                <input type="text" name="amount" placeholder="10.00" inputmode="decimal">
+            </div>
+        </div>
+        <div>&nbsp;</div>
+
+        <input type="hidden" name="txIdentifier" th:value="${tx.id}">
+
+        <div id="submit-container">
+            <button type="submit">Proceed to checkout</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

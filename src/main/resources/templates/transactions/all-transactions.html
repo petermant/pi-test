@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>All transactions</title>
+    <style>
+        body * { font-family: sans-serif; }
+        h1 { } input { font-size:12pt; }
+        #main { width: 550px; margin: 0 auto; }
+    </style>
+    <meta charset="UTF-8">
+</head>
+<body>
+<main>
+    <h1>My Test Shop</h1>
+    <h2>All transactions</h2>
+
+    <div><a href="/purchase">Create new</a></div>
+    <p>&nbsp;</p>
+    <table cellpadding="5">
+        <tr>
+            <th>Transaction ID</th>
+            <th>Reusable?</th>
+            <th>Amount</th>
+            <th></th>
+        </tr>
+        <tr th:each="tx : ${allTransactions}">
+            <td th:text="${tx.id}"></td>
+            <td th:text="${tx.reusable}"></td>
+            <td th:text="${tx.amount}"></td>
+            <td><a th:href="'/transactions/one/' + ${tx.getId()}">View</a></td>
+        </tr>
+    </table>
+</main>
+</body>
+</html>

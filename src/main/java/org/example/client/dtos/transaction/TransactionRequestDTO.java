@@ -18,14 +18,16 @@ public class TransactionRequestDTO {
     private final String customerLastName = "Mantell";
     private final BillingAddress billingAddress = new BillingAddress("1 Main Street", "Some city", "AB1 CD2", "GB");
     private final StrongCustomerAuthentication strongCustomerAuthentication;
+    private final CredentialType credentialType;
 
-    public TransactionRequestDTO(Transaction t, final String notificationURL) {
+    public TransactionRequestDTO(Transaction t, final String notificationURL, final CredentialType credentialType, final Boolean save, final Boolean reusable) {
         vendorTxCode = t.getId();
         amount = t.getAmount();
         // todo hard coding to 'card' payment method for now - what others are available?
-        paymentMethod = Collections.singletonMap("card", new PaymentMethod(t.getSessionKey(), t.getCardIdentifier()));
+        paymentMethod = Collections.singletonMap("card", new PaymentMethod(t.getSessionKey(), t.getCardIdentifier(), save, reusable));
         description = "Pete's PI integration demo app tx for £" + AmountConverter.convertToPounds(amount);
         strongCustomerAuthentication = new StrongCustomerAuthentication(notificationURL);
+        this.credentialType = credentialType;
     }
 
     public String getTransactionType() {
@@ -66,5 +68,9 @@ public class TransactionRequestDTO {
 
     public StrongCustomerAuthentication getStrongCustomerAuthentication() {
         return strongCustomerAuthentication;
+    }
+
+    public CredentialType getCredentialType() {
+        return credentialType;
     }
 }

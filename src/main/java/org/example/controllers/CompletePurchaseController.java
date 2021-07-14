@@ -1,6 +1,7 @@
 package org.example.controllers;
 
 import org.example.client.TransactionClient;
+import org.example.client.dtos.transaction.CredentialType;
 import org.example.client.dtos.transaction.TransactionResponseDTO;
 import org.example.model.Transaction;
 import org.example.repository.TransactionRepository;
@@ -55,29 +56,12 @@ public class CompletePurchaseController {
             Optional<Transaction> t = transactionRepo.findById(myTransactionId);
 
             if (t.isPresent()) {
-                final TransactionResponseDTO response = paymentService.complete(t.get(), cardIdentifier);
-
-                if ("2007".equals(response.getStatusCode()) && "3DAuth".equals(response.getStatus())) {
-                    logger.debug("Purchase completed with 3DAuth required {}, generating fallback form with ACS URL {}", response.getStatusCode(), response.getAcsUrl());
-
-                    model.addAttribute("response", response);
-                    model.addAttribute("threeDSResponseEndpoint", threeDSecureV1ResponseEndpoint);
-                    model.addAttribute(TRANSACTION_ID, myTransactionId);
-                    return "3DSecure/fallback-request-form";
-                } else if ("2021".equals(response.getStatusCode()) && "3DAuth".equals(response.getStatus())) {
-                    logger.debug("Purchase completed with 3DAuth required {}, generating fallback form with ACS URL {}", response.getStatusCode(), response.getAcsUrl());
-
-                    model.addAttribute("response", response);
-                    model.addAttribute(TRANSACTION_ID, Base64.getEncoder().encodeToString(myTransactionId.toString().getBytes(StandardCharsets.UTF_8)));
-
-                    return "3DSecure/challenge-request-form";
-                } else {
-                    logger.debug("Purchase completed with 3DSecure status {}, redirecting to purchase completed.", response.getThreeDSecure());
-                    return "redirect:/purchase-completed?myTransactionId=" + t.get().getId();
-                }
+                CredentialType credentialType = new CredentialType("First", "CIT");
+                return completePurchaseInternal(model, t.get(), cardIdentifier, credentialType, true, null);
             } else {
                 return "purchase-not-found";
             }
+
         } else if (body.containsKey("card-identifier-http-code")) {
             model.addAttribute("errorCode", body.getFirst("card-identifier-http-code"));
             model.addAttribute("errorMessage", body.getFirst("card-identifier-error-message"));
@@ -86,6 +70,58 @@ public class CompletePurchaseController {
             model.addAttribute("errorCode", -1);
             model.addAttribute("errorMessage", "Something went wrong");
             return "api-error";
+        }
+    }
+
+    @PostMapping(path = "/complete-purchase/re-use", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+    public String completePurchaseReuse(@RequestBody MultiValueMap<String, Object> body, Model model) {
+        logger.debug("Complete purchase with re-used card ID called with body {}", body);
+
+        // card ID is blank at this point
+        if (body.containsKey(TRANSACTION_ID)) {
+            UUID myTransactionId = UUID.fromString((String)body.getFirst(TRANSACTION_ID));
+
+            logger.debug("Purchase complete with re-used card ID requested for transaction {}", myTransactionId);
+            Optional<Transaction> t = transactionRepo.findById(myTransactionId);
+
+            if (t.isPresent()) {
+                CredentialType credentialType = new CredentialType("Subsequent", "CIT");
+                return completePurchaseInternal(model, t.get(), t.get().getCardIdentifier(), credentialType, null, true);
+            } else {
+                return "purchase-not-found";
+            }
+
+        } else if (body.containsKey("card-identifier-http-code")) {
+            model.addAttribute("errorCode", body.getFirst("card-identifier-http-code"));
+            model.addAttribute("errorMessage", body.getFirst("card-identifier-error-message"));
+            return "api-error";
+        } else {
+            model.addAttribute("errorCode", -1);
+            model.addAttribute("errorMessage", "Something went wrong");
+            return "api-error";
+        }
+    }
+
+    private String completePurchaseInternal(Model model, Transaction t, UUID cardIdentifier, CredentialType credentialType, final Boolean save, final Boolean reusable) {
+        final TransactionResponseDTO response = paymentService.complete(t, cardIdentifier, credentialType, save, reusable);
+
+        if ("2007".equals(response.getStatusCode()) && "3DAuth".equals(response.getStatus())) {
+            logger.debug("Purchase completed with 3DAuth required {}, generating fallback form with ACS URL {}", response.getStatusCode(), response.getAcsUrl());
+
+            model.addAttribute("response", response);
+            model.addAttribute("threeDSResponseEndpoint", threeDSecureV1ResponseEndpoint);
+            model.addAttribute(TRANSACTION_ID, t.getId());
+            return "3DSecure/fallback-request-form";
+        } else if ("2021".equals(response.getStatusCode()) && "3DAuth".equals(response.getStatus())) {
+            logger.debug("Purchase completed with 3DAuth required {}, generating fallback form with ACS URL {}", response.getStatusCode(), response.getAcsUrl());
+
+            model.addAttribute("response", response);
+            model.addAttribute(TRANSACTION_ID, Base64.getEncoder().encodeToString(t.getId().toString().getBytes(StandardCharsets.UTF_8)));
+
+            return "3DSecure/challenge-request-form";
+        } else {
+            logger.debug("Purchase completed with 3DSecure status {}, redirecting to purchase completed.", response.getThreeDSecure());
+            return "redirect:/purchase-completed?myTransactionId=" + t.getId();
         }
     }
 
