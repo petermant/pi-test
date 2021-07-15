@@ -7,6 +7,7 @@ import org.example.utils.AmountConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,6 +26,8 @@ public class CheckoutController {
     private static final String ERROR_MESSAGE = "card-identifier-error-message";
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @Value("${opayo.server-uri}") private String serverUri;
 
     @Autowired private MerchantSessionClient sessionClient;
     @Autowired private TransactionRepository transactionRepo;
@@ -54,6 +57,7 @@ public class CheckoutController {
 
             // added as the original amount, unparsed, i.e. show 10.00 not 1000
             model.addAttribute("amount", amountStr);
+            model.addAttribute("serverUri", serverUri);
 
             logger.debug("Rendering checkout page with session key, for amount {}", amount);
             return "checkout";

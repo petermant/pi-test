@@ -16,7 +16,7 @@ public class MerchantSessionClient extends AbstractOpayoClient {
 
     @Autowired private RestTemplate restTemplate;
 
-    @Value("${opayo.uri.session-key}") private String sessionKeyURI;
+    @Value("${opayo.server-uri}${opayo.uri.session-key}") private String sessionKeyURI;
 
     @Value("${opayo.integration.vendor-name}") private String vendorName;
 

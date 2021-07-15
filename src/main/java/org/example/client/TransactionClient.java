@@ -21,7 +21,7 @@ public class TransactionClient extends AbstractOpayoClient {
 
     @Autowired private RestTemplate restTemplate;
 
-    @Value("${opayo.uri.transaction}") private String transactionURI;
+    @Value("${opayo.server-uri}${opayo.uri.transaction}") private String transactionURI;
     @Value("${org.example.3DSecureACSRedirectV2}") private String threeDSecureV2ResponseEndpoint;
 
     public TransactionResponseDTO requestTransaction(Transaction t) {

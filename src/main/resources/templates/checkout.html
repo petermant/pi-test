@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <title>Payment Form</title>
-    <script src="https://pi-test.sagepay.com/api/v1/js/sagepay.js"></script>
+    <script th:src="${serverUri} + '/api/v1/js/sagepay.js'"></script>
     <style>
     body * { font-family: sans-serif; }
     h1 { } input { font-size:12pt; }

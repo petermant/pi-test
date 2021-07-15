@@ -7,22 +7,32 @@ logging:
     org:
       example: DEBUG
 
+server:
+  port: 58088
+
 org:
   example:
-    3DSecureACSRedirectV1: https://68fb0b6be306.ngrok.io/3DSecure/response/v1
-    3DSecureACSRedirectV2: https://68fb0b6be306.ngrok.io/3DSecure/response/v2
+#    3DSecureACSRedirectV1: https://68fb0b6be306.ngrok.io/3DSecure/response/v1
+#    3DSecureACSRedirectV2: https://68fb0b6be306.ngrok.io/3DSecure/response/v2
+    3DSecureACSRedirectV1: http://host.docker.internal:58088/3DSecure/response/v1
+    3DSecureACSRedirectV2: http://host.docker.internal:58088/3DSecure/response/v2
 
 opayo:
+  #server-uri: https://test.sagepay.com
+  server-uri: http://pete.opayo.local
   uri:
-    session-key: https://test.sagepay.com/api/v1/merchant-session-keys
-    transaction: https://test.sagepay.com/api/v1/transactions
+    session-key: /api/v1/merchant-session-keys
+    transaction: /api/v1/transactions
     three-d-secure:
-      challenge-complete: https://test.sagepay.com/api/v1/transactions/{transactionId}/3d-secure-challenge
-      fallback-complete: https://test.sagepay.com/api/v1/transactions/{transactionId}/3d-secure
+      challenge-complete: /api/v1/transactions/{transactionId}/3d-secure-challenge
+      fallback-complete: /api/v1/transactions/{transactionId}/3d-secure
   integration:
 #    vendor-name: sandbox
 #    key: hJYxsw7HLbj40cB8udES8CDRFLhuJ8G54O6rDpUXvE6hYDrria
 #    password: o2iHSrFybYMZpmWOQMuhsXP52V4fBtpuSDshrKDSWsBY1OiN6hwd9Kb12z4j5Us5u
-    vendor-name: protxross
-    key: F9yNejL2ifBryzzKQ501Js19Q41cmTflhNiVVkYJSEa8h2jai3
-    password: IzKMysw81bWowamFw3uHkGc8CaDJgbCG1Wnn3WDBPT19kEN92WAPQYt8GsiqME348
+#    vendor-name: protxross
+#    key: F9yNejL2ifBryzzKQ501Js19Q41cmTflhNiVVkYJSEa8h2jai3
+#    password: IzKMysw81bWowamFw3uHkGc8CaDJgbCG1Wnn3WDBPT19kEN92WAPQYt8GsiqME348
+    vendor-name: nitVendor
+    key: nitVendor
+    password: password

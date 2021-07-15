@@ -21,8 +21,8 @@ public class ThreeDSecureClient extends AbstractOpayoClient {
     @Autowired private RestTemplate restTemplate;
     @Autowired private TransactionClient transactionClient;
 
-    @Value("${opayo.uri.three-d-secure.challenge-complete}") private String threeDSecureChallengeCompleteURI;
-    @Value("${opayo.uri.three-d-secure.fallback-complete}") private String threeDSecureFallbackCompleteURI;
+    @Value("${opayo.server-uri}${opayo.uri.three-d-secure.challenge-complete}") private String threeDSecureChallengeCompleteURI;
+    @Value("${opayo.server-uri}${opayo.uri.three-d-secure.fallback-complete}") private String threeDSecureFallbackCompleteURI;
 
     public TransactionResponseDTO challengeComplete(UUID transactionId, String cres) {
         final Map<String, String> body = Collections.singletonMap("cRes", cres);

@@ -40,11 +40,14 @@ public class CompletePurchaseController {
 
     @Value("${org.example.3DSecureACSRedirectV1}") private String threeDSecureV1ResponseEndpoint;
 
+    @Value("${opayo.server-uri}") private String serverUri;
+
     @PostMapping(path = "/complete-purchase", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     public String completePurchase(@RequestBody MultiValueMap<String, Object> body, Model model) {
+        logger.debug("Complete purchase called with body {}", body);
 
         // todo other validation needed here as well, e.g. card-identifier missing, tx ID not a valid UUID, etc
-        if (body.containsKey(TRANSACTION_ID)) {
+        if (body.containsKey(TRANSACTION_ID) && body.containsKey(CARD_ID)) {
             UUID myTransactionId = UUID.fromString((String)body.getFirst(TRANSACTION_ID));
             UUID cardIdentifier = UUID.fromString((String)body.getFirst(CARD_ID));
 
@@ -75,9 +78,13 @@ public class CompletePurchaseController {
             } else {
                 return "purchase-not-found";
             }
+        } else if (body.containsKey("card-identifier-http-code")) {
+            model.addAttribute("errorCode", body.getFirst("card-identifier-http-code"));
+            model.addAttribute("errorMessage", body.getFirst("card-identifier-error-message"));
+            return "api-error";
         } else {
             model.addAttribute("errorCode", -1);
-            model.addAttribute("errorMessage", "Transaction ID missing from request");
+            model.addAttribute("errorMessage", "Something went wrong");
             return "api-error";
         }
     }
@@ -99,6 +106,8 @@ public class CompletePurchaseController {
             model.addAttribute("amount", AmountConverter.convertToPounds(t.get().getAmount()));
             model.addAttribute("opayoTransactionId", t.get().getOpayoTransactionId());
             model.addAttribute("avsStatus", responseDTO.getAvsCvcCheck().getStatus());
+
+            model.addAttribute("serverUri", serverUri);
 
             return "purchase-completed";
         } else {
