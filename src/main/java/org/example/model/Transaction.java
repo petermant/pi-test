@@ -11,22 +11,26 @@ public class Transaction {
 
     @Id @GeneratedValue
     private UUID id;
+    private String transactionType;
     private UUID sessionKey;
     private UUID cardIdentifier;
     private long amount;
     private UUID opayoTransactionId;
     private boolean reusable = false;
+    private boolean deferred = false;
     private UUID referenceTransactionId;
 
     public Transaction() {}
 
-    public Transaction(UUID sessionKey, long amount, boolean reusable) {
+    public Transaction(String transactionType, UUID sessionKey, long amount, boolean reusable) {
+        this.transactionType = transactionType;
         this.sessionKey = sessionKey;
         this.amount = amount;
         this.reusable = reusable;
     }
 
-    public Transaction(UUID sessionKey, long amount, Transaction repeatTransaction) {
+    public Transaction(String transactionType, UUID sessionKey, long amount, Transaction repeatTransaction) {
+        this.transactionType = transactionType;
         this.sessionKey = sessionKey;
         this.amount = amount;
         this.referenceTransactionId = repeatTransaction.getOpayoTransactionId();
@@ -38,6 +42,14 @@ public class Transaction {
 
     public void setId(final UUID id) {
         this.id = id;
+    }
+
+    public String getTransactionType() {
+        return transactionType;
+    }
+
+    public void setTransactionType(String transactionType) {
+        this.transactionType = transactionType;
     }
 
     public UUID getSessionKey() {
@@ -84,6 +96,14 @@ public class Transaction {
         this.referenceTransactionId = referenceTransactionId;
     }
 
+    public void setDeferred(boolean deferred) {
+        this.deferred = deferred;
+    }
+
+    public boolean isDeferred() {
+        return deferred;
+    }
+
     /**
      * Altho hibernate says you shouldn't use ID for equals - in this case, two transactions ARE equal if their ID's are equal, whilst all other attributes
      * are mutable e.g. a given transaction can use different session keys over time, and the card identifier is only stored once obtained.
@@ -105,11 +125,13 @@ public class Transaction {
     public String toString() {
         return "Transaction{" +
                 "id=" + id +
+                ", transactionType=" + transactionType +
                 ", sessionKey=" + sessionKey +
                 ", cardIdentifier=" + cardIdentifier +
                 ", amount=" + amount +
                 ", opayoTransactionId=" + opayoTransactionId +
                 ", reusable=" + reusable +
+                ", deferred=" + deferred +
                 (referenceTransactionId == null ? "" : ", referenceTransactionId=" + referenceTransactionId) +
                 '}';
     }

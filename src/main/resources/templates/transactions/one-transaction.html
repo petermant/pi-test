@@ -6,6 +6,17 @@
         body * { font-family: sans-serif; }
         h1 { } input { font-size:12pt; }
         #main { width: 550px; margin: 0 auto; }
+        .btn-link {
+            border: none;
+            outline: none;
+            background: none;
+            cursor: pointer;
+            color: #0000EE;
+            padding: 0;
+            text-decoration: underline;
+            font-family: inherit;
+            font-size: inherit;
+        }
     </style>
     <meta charset="UTF-8">
 </head>
@@ -17,6 +28,7 @@
     <div><a href="/purchase">Create new</a></div>
     <p>&nbsp;</p>
     <table cellspacing="10">
+        <tr><td>Type</td><td th:text="${tx.transactionType}"></td></tr>
         <tr><td>Amount</td><td th:text="${tx.amount}"></td></tr>
         <tr><td>Reusable?</td><td th:text="${tx.reusable}"></td></tr>
         <tr><td>Session key</td><td th:text="${tx.sessionKey}"></td></tr>
@@ -27,6 +39,10 @@
     <p>&nbsp;</p>
     <p th:if="${tx.reusable}"><a th:href="'/purchase/re-use/' + ${tx.id}">Re-use card identifier</a></p>
     <p th:if="${tx.reusable}"><a th:href="'/purchase/repeat/' + ${tx.id}">Repeat transaction</a></p>
+    <form th:action="'/complete-purchase/release/' + ${tx.id}" method="post">
+        <button type="submit" class="btn-link">Release deferred transaction</button>
+
+    </form>
 
 </main>
 </body>

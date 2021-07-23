@@ -47,9 +47,20 @@ public class CheckoutController {
             final long amount = AmountConverter.parseAmount(amountStr);
 
             final boolean reusable = body.containsKey("reusable") && "on".equals(body.get("reusable").get(0));
+            final boolean deferred = body.containsKey("deferred") && "on".equals(body.get("deferred").get(0));
+
+            if (reusable && deferred) {
+                model.addAttribute("errorCode", -1);
+                model.addAttribute("errorMessage", "Cannot be deferred and reusable, go back and try again");
+                return "api-error";
+            }
+
+            String type = deferred ? "Deferred" : "Payment";
 
             // todo this is currently a bit dumb, in that every time you refresh the page you get a new transaction
-            Transaction t = transactionRepo.save(new Transaction(merchantSessionKey, amount, reusable));
+            Transaction t = new Transaction(type, merchantSessionKey, amount, reusable);
+            t.setDeferred(deferred);
+            t = transactionRepo.save(t);
             model.addAttribute("merchantSessionKey", merchantSessionKey);
             model.addAttribute("myTransactionId", t.getId());
 
@@ -80,7 +91,7 @@ public class CheckoutController {
             Transaction oldTx = transactionRepo.findById(txId).get();
 
             // todo this is currently a bit dumb, in that every time you refresh the page you get a new transaction
-            Transaction t = new Transaction(merchantSessionKey, amount, true);
+            Transaction t = new Transaction("Payment", merchantSessionKey, amount, true);
             t.setCardIdentifier(oldTx.getCardIdentifier());
             t = transactionRepo.save(t);
 

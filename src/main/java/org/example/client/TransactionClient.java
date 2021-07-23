@@ -1,7 +1,10 @@
 package org.example.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.client.dtos.instruction.InstructionBody;
 import org.example.client.dtos.transaction.CredentialType;
 import org.example.client.dtos.transaction.TransactionRequestDTO;
 import org.example.client.dtos.transaction.TransactionResponseDTO;
@@ -15,12 +18,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.HashMap;
 import java.util.UUID;
 
 @Component
 public class TransactionClient extends AbstractOpayoClient {
 
+    private static final TypeReference<HashMap<String, Object>> MAP_TYPE  = new TypeReference<HashMap<String, Object>>() {};
+
     @Autowired private RestTemplate restTemplate;
+    @Autowired private ObjectMapper mapper;
 
     @Value("${opayo.server-uri}${opayo.uri.transaction}") private String transactionURI;
     @Value("${org.example.3DSecureACSRedirectV2}") private String threeDSecureV2ResponseEndpoint;
@@ -70,6 +77,30 @@ public class TransactionClient extends AbstractOpayoClient {
         }  catch (HttpClientErrorException hce) {
             logger.error("{} error GETting transaction details. Response body: {}", hce.getStatusCode(), hce.getResponseBodyAsString());
             throw new RuntimeException("Client error requesting transaction detail");
+        }
+    }
+
+    public HashMap<String, Object> releaseTransaction(Transaction tx) {
+
+        InstructionBody instructionBody = new InstructionBody("release", tx.getAmount());
+        final HttpEntity<InstructionBody> httpEntity = createRequest(instructionBody);
+
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(transactionURI + "/" + tx.getOpayoTransactionId().toString().toUpperCase() + "/instructions", HttpMethod.POST, httpEntity, String.class);
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                logger.debug("Release instruction response: {} with {}", response.getStatusCode(), response.getBody());
+
+                return mapper.readValue(response.getBody(), MAP_TYPE);
+            } else {
+                throw new RuntimeException("Transaction request was unsuccessful: " + response.getStatusCode());
+            }
+        } catch (HttpClientErrorException hce) {
+            logger.error("{} error GETting transaction details. Response body: {}", hce.getStatusCode(), hce.getResponseBodyAsString());
+            throw new RuntimeException("Client error requesting transaction detail");
+        } catch (JsonProcessingException e) {
+            logger.error("Unable to parse instruction response", e);
+            throw new RuntimeException(e);
         }
     }
 }

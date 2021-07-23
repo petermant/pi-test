@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.UUID;
 
 @Service
@@ -38,5 +39,11 @@ public class PaymentService {
         transactionRepo.save(t);
 
         return responseDTO;
+    }
+
+    public HashMap<String, Object> release(Transaction tx) {
+        logger.debug("Releasing transaction with ID {}", tx.getId());
+
+        return transactionClient.releaseTransaction(tx);
     }
 }

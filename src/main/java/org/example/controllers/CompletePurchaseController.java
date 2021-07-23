@@ -18,6 +18,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -59,12 +61,18 @@ public class CompletePurchaseController {
 
             if (t.isPresent()) {
                 CredentialType credentialType = new CredentialType("First", "CIT");
-                return completePurchaseInternal(model, "Payment", t.get(), cardIdentifier, credentialType, true, null);
+                return completePurchaseInternal(model, t.get().isDeferred() ? "Deferred" : "Payment", t.get(), cardIdentifier, credentialType, true, null);
             } else {
                 return "purchase-not-found";
             }
 
-        } else if (body.containsKey("card-identifier-http-code")) {
+        } else {
+            return returnErrors(body, model);
+        }
+    }
+
+    private String returnErrors(@RequestBody MultiValueMap<String, Object> body, Model model) {
+        if (body.containsKey("card-identifier-http-code")) {
             model.addAttribute("errorCode", body.getFirst("card-identifier-http-code"));
             model.addAttribute("errorMessage", body.getFirst("card-identifier-error-message"));
             return "api-error";
@@ -77,7 +85,7 @@ public class CompletePurchaseController {
 
     @PostMapping(path = "/complete-purchase/re-use", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     public String completePurchaseReuse(@RequestBody MultiValueMap<String, Object> body, Model model) {
-        logger.debug("Complete purchase with re-used card ID called with body {}", body);
+        logger.debug("Complete purchase with re-used card ID, called with body {}", body);
 
         // card ID is blank at this point
         if (body.containsKey(TRANSACTION_ID)) {
@@ -93,20 +101,12 @@ public class CompletePurchaseController {
                 return "purchase-not-found";
             }
 
-        } else if (body.containsKey("card-identifier-http-code")) {
-            model.addAttribute("errorCode", body.getFirst("card-identifier-http-code"));
-            model.addAttribute("errorMessage", body.getFirst("card-identifier-error-message"));
-            return "api-error";
-        } else {
-            model.addAttribute("errorCode", -1);
-            model.addAttribute("errorMessage", "Something went wrong");
-            return "api-error";
-        }
+        } else return returnErrors(body, model);
     }
 
     @PostMapping(path = "/complete-purchase/repeat", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     public String completePurchaseRepeat(@RequestBody MultiValueMap<String, Object> body, Model model) {
-        logger.debug("Complete purchase with repeat of transaction called with body {}", body);
+        logger.debug("Complete purchase with repeat of transaction, called with body {}", body);
 
         if (body.containsKey(TRANSACTION_ID)) {
             UUID myTransactionId = UUID.fromString((String)body.getFirst(TRANSACTION_ID));
@@ -120,21 +120,48 @@ public class CompletePurchaseController {
                 final long amount = AmountConverter.parseAmount(amountStr);
 
                 CredentialType credentialType = new CredentialType("Subsequent", "MIT");
-                Transaction repeatTrans = new Transaction(merchantSessionKey, amount, t.get());
+                final String type = "Repeat";
+                Transaction repeatTrans = new Transaction(type, merchantSessionKey, amount, t.get());
                 transactionRepo.save(repeatTrans);
-                return completePurchaseInternal(model, "Repeat", repeatTrans, null /*t.get().getCardIdentifier()*/, credentialType, null, true);
+
+                // todo should check what happens if pass in card identifier
+                return completePurchaseInternal(model, type, repeatTrans, null /*t.get().getCardIdentifier()*/, credentialType, null, true);
             } else {
                 return "purchase-not-found";
             }
 
-        } else if (body.containsKey("card-identifier-http-code")) {
-            model.addAttribute("errorCode", body.getFirst("card-identifier-http-code"));
-            model.addAttribute("errorMessage", body.getFirst("card-identifier-error-message"));
-            return "api-error";
+        } else return returnErrors(body, model);
+    }
+
+    @PostMapping(path = "/complete-purchase/release/{transactionId}", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+    public String completePurchaseRelease(@PathVariable("transactionId") UUID transactionId, Model model) {
+        logger.debug("Complete purchase with release of deferred transaction, called with transactionId {}", transactionId);
+
+        Optional<Transaction> t = transactionRepo.findById(transactionId);
+
+        if (t.isPresent()) {
+            Transaction tx = t.get();
+            if (tx.isDeferred() && tx.getTransactionType().equals("Deferred")) {
+                HashMap<String, Object> response = paymentService.release(tx);
+
+                if (response.containsKey("code") && response.containsKey("description")) {
+                    model.addAttribute("errorCode", response.get("code"));
+                    model.addAttribute("errorMessage", response.get("description"));
+                    return "api-error";
+                } else {
+                    tx.setTransactionType("Released");
+                    transactionRepo.save(tx);
+                    logger.debug("Purchase released, redirecting to purchase completed.");
+
+                    return "redirect:/purchase-completed?myTransactionId=" + tx.getId();
+                }
+            } else {
+                model.addAttribute("errorCode", -1);
+                model.addAttribute("errorMessage", "Transaction cannot be released unless it is deferred: " +t.get());
+                return "api-error";
+            }
         } else {
-            model.addAttribute("errorCode", -1);
-            model.addAttribute("errorMessage", "Something went wrong");
-            return "api-error";
+            return "purchase-not-found";
         }
     }
 
