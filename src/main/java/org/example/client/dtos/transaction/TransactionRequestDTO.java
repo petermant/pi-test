@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class TransactionRequestDTO {
-    private final String transactionType = "Payment";
+    private final String transactionType;
     private final Map<String, PaymentMethod> paymentMethod;
     private final UUID vendorTxCode;
     private final long amount;
@@ -19,8 +19,10 @@ public class TransactionRequestDTO {
     private final BillingAddress billingAddress = new BillingAddress("1 Main Street", "Some city", "AB1 CD2", "GB");
     private final StrongCustomerAuthentication strongCustomerAuthentication;
     private final CredentialType credentialType;
+    private final UUID referenceTransactionId;
 
-    public TransactionRequestDTO(Transaction t, final String notificationURL, final CredentialType credentialType, final Boolean save, final Boolean reusable) {
+    public TransactionRequestDTO(final String transactionType, Transaction t, final String notificationURL, final CredentialType credentialType, final Boolean save, final Boolean reusable) {
+        this.transactionType = transactionType;
         vendorTxCode = t.getId();
         amount = t.getAmount();
         // todo hard coding to 'card' payment method for now - what others are available?
@@ -28,6 +30,7 @@ public class TransactionRequestDTO {
         description = "Pete's PI integration demo app tx for £" + AmountConverter.convertToPounds(amount);
         strongCustomerAuthentication = new StrongCustomerAuthentication(notificationURL);
         this.credentialType = credentialType;
+        this.referenceTransactionId = t.getReferenceTransactionId();
     }
 
     public String getTransactionType() {
@@ -72,5 +75,9 @@ public class TransactionRequestDTO {
 
     public CredentialType getCredentialType() {
         return credentialType;
+    }
+
+    public UUID getReferenceTransactionId() {
+        return referenceTransactionId;
     }
 }

@@ -26,6 +26,7 @@
 
     <p>&nbsp;</p>
     <p th:if="${tx.reusable}"><a th:href="'/purchase/re-use/' + ${tx.id}">Re-use card identifier</a></p>
+    <p th:if="${tx.reusable}"><a th:href="'/purchase/repeat/' + ${tx.id}">Repeat transaction</a></p>
 
 </main>
 </body>

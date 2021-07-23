@@ -25,9 +25,9 @@ public class TransactionClient extends AbstractOpayoClient {
     @Value("${opayo.server-uri}${opayo.uri.transaction}") private String transactionURI;
     @Value("${org.example.3DSecureACSRedirectV2}") private String threeDSecureV2ResponseEndpoint;
 
-    public TransactionResponseDTO requestTransaction(Transaction t, CredentialType credentialType, final Boolean save, final Boolean reusable) {
+    public TransactionResponseDTO requestTransaction(final String transactionType, Transaction t, CredentialType credentialType, final Boolean save, final Boolean reusable) {
         // always using V2 endpoint here, because it's ignored in V1 requests anyway
-        final TransactionRequestDTO requestDTO = new TransactionRequestDTO(t, threeDSecureV2ResponseEndpoint, credentialType, save, reusable);
+        final TransactionRequestDTO requestDTO = new TransactionRequestDTO(transactionType, t, threeDSecureV2ResponseEndpoint, credentialType, save, reusable);
 
         final HttpEntity<TransactionRequestDTO> httpEntity = createRequest(requestDTO);
 

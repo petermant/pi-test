@@ -20,14 +20,14 @@ public class PaymentService {
     @Autowired private TransactionRepository transactionRepo;
     @Autowired private TransactionClient transactionClient;
 
-    public TransactionResponseDTO complete(final Transaction t, final UUID cardIdentifier, CredentialType credentialType, final Boolean save, final Boolean reusable) {
+    public TransactionResponseDTO complete(final String transactionType, final Transaction t, final UUID cardIdentifier, CredentialType credentialType, final Boolean save, final Boolean reusable) {
         logger.debug("Completing purchase for transaction {} with card identifier {}", t.getId(), cardIdentifier);
 
         t.setCardIdentifier(cardIdentifier);
 
         // todo think about exception handling here ... want to store the card identifier as above, even if the payment API call fails
 
-        TransactionResponseDTO responseDTO = transactionClient.requestTransaction(t, credentialType, save, reusable);
+        TransactionResponseDTO responseDTO = transactionClient.requestTransaction(transactionType, t, credentialType, save, reusable);
 
         // todo also handle other outcomes here, e.g. not authorised, rejected etc - see table in step 2 here - https://developer-eu.elavon.com/docs/opayo/submit-payments-your-server
 

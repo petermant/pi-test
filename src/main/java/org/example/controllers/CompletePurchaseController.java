@@ -1,5 +1,6 @@
 package org.example.controllers;
 
+import org.example.client.MerchantSessionClient;
 import org.example.client.TransactionClient;
 import org.example.client.dtos.transaction.CredentialType;
 import org.example.client.dtos.transaction.TransactionResponseDTO;
@@ -38,6 +39,7 @@ public class CompletePurchaseController {
     @Autowired private TransactionRepository transactionRepo;
     @Autowired private PaymentService paymentService;
     @Autowired private TransactionClient transactionClient;
+    @Autowired private MerchantSessionClient sessionClient;
 
     @Value("${org.example.3DSecureACSRedirectV1}") private String threeDSecureV1ResponseEndpoint;
 
@@ -57,7 +59,7 @@ public class CompletePurchaseController {
 
             if (t.isPresent()) {
                 CredentialType credentialType = new CredentialType("First", "CIT");
-                return completePurchaseInternal(model, t.get(), cardIdentifier, credentialType, true, null);
+                return completePurchaseInternal(model, "Payment", t.get(), cardIdentifier, credentialType, true, null);
             } else {
                 return "purchase-not-found";
             }
@@ -86,7 +88,7 @@ public class CompletePurchaseController {
 
             if (t.isPresent()) {
                 CredentialType credentialType = new CredentialType("Subsequent", "CIT");
-                return completePurchaseInternal(model, t.get(), t.get().getCardIdentifier(), credentialType, null, true);
+                return completePurchaseInternal(model, "Payment", t.get(), t.get().getCardIdentifier(), credentialType, null, true);
             } else {
                 return "purchase-not-found";
             }
@@ -102,8 +104,42 @@ public class CompletePurchaseController {
         }
     }
 
-    private String completePurchaseInternal(Model model, Transaction t, UUID cardIdentifier, CredentialType credentialType, final Boolean save, final Boolean reusable) {
-        final TransactionResponseDTO response = paymentService.complete(t, cardIdentifier, credentialType, save, reusable);
+    @PostMapping(path = "/complete-purchase/repeat", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+    public String completePurchaseRepeat(@RequestBody MultiValueMap<String, Object> body, Model model) {
+        logger.debug("Complete purchase with repeat of transaction called with body {}", body);
+
+        if (body.containsKey(TRANSACTION_ID)) {
+            UUID myTransactionId = UUID.fromString((String)body.getFirst(TRANSACTION_ID));
+
+            logger.debug("Purchase complete for repeat of transaction {}", myTransactionId);
+            Optional<Transaction> t = transactionRepo.findById(myTransactionId);
+
+            if (t.isPresent()) {
+                UUID merchantSessionKey = sessionClient.getSessionKey().getMerchantSessionKey();
+                final Object amountStr = body.getFirst("amount");
+                final long amount = AmountConverter.parseAmount(amountStr);
+
+                CredentialType credentialType = new CredentialType("Subsequent", "MIT");
+                Transaction repeatTrans = new Transaction(merchantSessionKey, amount, t.get());
+                transactionRepo.save(repeatTrans);
+                return completePurchaseInternal(model, "Repeat", repeatTrans, null /*t.get().getCardIdentifier()*/, credentialType, null, true);
+            } else {
+                return "purchase-not-found";
+            }
+
+        } else if (body.containsKey("card-identifier-http-code")) {
+            model.addAttribute("errorCode", body.getFirst("card-identifier-http-code"));
+            model.addAttribute("errorMessage", body.getFirst("card-identifier-error-message"));
+            return "api-error";
+        } else {
+            model.addAttribute("errorCode", -1);
+            model.addAttribute("errorMessage", "Something went wrong");
+            return "api-error";
+        }
+    }
+
+    private String completePurchaseInternal(Model model, final String transactionType, Transaction t, UUID cardIdentifier, CredentialType credentialType, final Boolean save, final Boolean reusable) {
+        final TransactionResponseDTO response = paymentService.complete(transactionType, t, cardIdentifier, credentialType, save, reusable);
 
         if ("2007".equals(response.getStatusCode()) && "3DAuth".equals(response.getStatus())) {
             logger.debug("Purchase completed with 3DAuth required {}, generating fallback form with ACS URL {}", response.getStatusCode(), response.getAcsUrl());
@@ -141,7 +177,7 @@ public class CompletePurchaseController {
 
             model.addAttribute("amount", AmountConverter.convertToPounds(t.get().getAmount()));
             model.addAttribute("opayoTransactionId", t.get().getOpayoTransactionId());
-            model.addAttribute("avsStatus", responseDTO.getAvsCvcCheck().getStatus());
+            model.addAttribute("avsStatus", responseDTO.getAvsCvcCheck() == null ? null : responseDTO.getAvsCvcCheck().getStatus());
 
             model.addAttribute("serverUri", serverUri);
 

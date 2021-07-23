@@ -36,16 +36,10 @@ public class CheckoutController {
 
     @PostMapping(path = "/checkout", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     public String checkout(@RequestParam Map<String, String> allParams,
-                           @RequestBody MultiValueMap<String, Object> body,
-                           Model model) {
+                           @RequestBody MultiValueMap<String, Object> body, Model model) {
 
         if (hasError(allParams)) {
-            logger.debug("Error rendering checkout page: {}", allParams);
-            // todo handle different errors as per https://developer-eu.elavon.com/docs/opayo/spec/api-reference#section/Response-Codes/HTTP-Response-Codes
-            //      Some of these should not be shown to end users - and some maybe routed differently
-            model.addAttribute("errorCode", allParams.get(ERROR_CODE));
-            model.addAttribute("errorMessage", allParams.get(ERROR_MESSAGE));
-            return "api-error";
+            return renderError(allParams, model);
         } else {
             UUID merchantSessionKey = sessionClient.getSessionKey().getMerchantSessionKey();
 
@@ -70,16 +64,10 @@ public class CheckoutController {
 
     @PostMapping(path = "/checkout/re-use", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     public String checkoutReuse(@RequestParam Map<String, String> allParams,
-                           @RequestBody MultiValueMap<String, Object> body,
-                           Model model) {
+                           @RequestBody MultiValueMap<String, Object> body, Model model) {
 
         if (hasError(allParams)) {
-            logger.debug("Error rendering checkout page: {}", allParams);
-            // todo handle different errors as per https://developer-eu.elavon.com/docs/opayo/spec/api-reference#section/Response-Codes/HTTP-Response-Codes
-            //      Some of these should not be shown to end users - and some maybe routed differently
-            model.addAttribute("errorCode", allParams.get(ERROR_CODE));
-            model.addAttribute("errorMessage", allParams.get(ERROR_MESSAGE));
-            return "api-error";
+            return renderError(allParams, model);
         } else {
             UUID merchantSessionKey = sessionClient.getSessionKey().getMerchantSessionKey();
 
@@ -120,5 +108,14 @@ public class CheckoutController {
             logger.error("Unrecognized value in HTTP code field");
             return true;
         }
+    }
+
+    private String renderError(@RequestParam Map<String, String> allParams, Model model) {
+        logger.debug("Error rendering checkout page: {}", allParams);
+        // todo handle different errors as per https://developer-eu.elavon.com/docs/opayo/spec/api-reference#section/Response-Codes/HTTP-Response-Codes
+        //      Some of these should not be shown to end users - and some maybe routed differently
+        model.addAttribute("errorCode", allParams.get(ERROR_CODE));
+        model.addAttribute("errorMessage", allParams.get(ERROR_MESSAGE));
+        return "api-error";
     }
 }

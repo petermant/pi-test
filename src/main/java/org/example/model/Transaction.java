@@ -16,6 +16,7 @@ public class Transaction {
     private long amount;
     private UUID opayoTransactionId;
     private boolean reusable = false;
+    private UUID referenceTransactionId;
 
     public Transaction() {}
 
@@ -23,6 +24,12 @@ public class Transaction {
         this.sessionKey = sessionKey;
         this.amount = amount;
         this.reusable = reusable;
+    }
+
+    public Transaction(UUID sessionKey, long amount, Transaction repeatTransaction) {
+        this.sessionKey = sessionKey;
+        this.amount = amount;
+        this.referenceTransactionId = repeatTransaction.getOpayoTransactionId();
     }
 
     public UUID getId() {
@@ -69,6 +76,14 @@ public class Transaction {
         this.reusable = reusable;
     }
 
+    public UUID getReferenceTransactionId() {
+        return referenceTransactionId;
+    }
+
+    public void setReferenceTransactionId(UUID referenceTransactionId) {
+        this.referenceTransactionId = referenceTransactionId;
+    }
+
     /**
      * Altho hibernate says you shouldn't use ID for equals - in this case, two transactions ARE equal if their ID's are equal, whilst all other attributes
      * are mutable e.g. a given transaction can use different session keys over time, and the card identifier is only stored once obtained.
@@ -95,6 +110,7 @@ public class Transaction {
                 ", amount=" + amount +
                 ", opayoTransactionId=" + opayoTransactionId +
                 ", reusable=" + reusable +
+                (referenceTransactionId == null ? "" : ", referenceTransactionId=" + referenceTransactionId) +
                 '}';
     }
 }

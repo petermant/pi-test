@@ -33,13 +33,26 @@ public class PurchaseController {
     }
 
     @GetMapping("/purchase/re-use/{transactionId}")
-    public String purchase(@PathVariable("transactionId") UUID transactionId,
+    public String purchaseReuse(@PathVariable("transactionId") UUID transactionId,
                            Model model) {
         Optional<Transaction> tx = transactionRepo.findById(transactionId);
 
         if (tx.isPresent()) {
             model.addAttribute("tx", tx.get());
             return "purchase/purchase-reuse";
+        } else {
+            return "purchase-not-found";
+        }
+    }
+
+    @GetMapping("/purchase/repeat/{transactionId}")
+    public String purchaseRepeat(@PathVariable("transactionId") UUID transactionId,
+                           Model model) {
+        Optional<Transaction> tx = transactionRepo.findById(transactionId);
+
+        if (tx.isPresent()) {
+            model.addAttribute("tx", tx.get());
+            return "purchase/purchase-repeat";
         } else {
             return "purchase-not-found";
         }
