@@ -19,12 +19,14 @@
     <table cellpadding="5">
         <tr>
             <th>Transaction ID</th>
+            <th>Type</th>
             <th>Reusable?</th>
             <th>Amount</th>
             <th></th>
         </tr>
         <tr th:each="tx : ${allTransactions}">
             <td th:text="${tx.id}"></td>
+            <td th:text="${tx.transactionType}"></td>
             <td th:text="${tx.reusable}"></td>
             <td th:text="${tx.amount}"></td>
             <td><a th:href="'/transactions/one/' + ${tx.getId()}">View</a></td>

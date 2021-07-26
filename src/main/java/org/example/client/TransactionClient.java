@@ -96,8 +96,41 @@ public class TransactionClient extends AbstractOpayoClient {
                 throw new RuntimeException("Transaction request was unsuccessful: " + response.getStatusCode());
             }
         } catch (HttpClientErrorException hce) {
-            logger.error("{} error GETting transaction details. Response body: {}", hce.getStatusCode(), hce.getResponseBodyAsString());
+            logger.error("{} error releasing transaction. Response body: {}", hce.getStatusCode(), hce.getResponseBodyAsString());
             throw new RuntimeException("Client error requesting transaction detail");
+        } catch (JsonProcessingException e) {
+            logger.error("Unable to parse instruction response", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public HashMap<String, Object> refund(Transaction tx) {
+
+        final TransactionRequestDTO requestDTO = new TransactionRequestDTO(tx);
+
+        final HttpEntity<TransactionRequestDTO> httpEntity = createRequest(requestDTO);
+
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(transactionURI, httpEntity, String.class);
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                logger.debug("Release instruction response: {} with {}", response.getStatusCode(), response.getBody());
+
+                return mapper.readValue(response.getBody(), MAP_TYPE);
+            } else {
+                throw new RuntimeException("Transaction request was unsuccessful: " + response.getStatusCode());
+            }
+        } catch (HttpClientErrorException hce) {
+            logger.error("{} error refunding transaction. Response body: {}", hce.getStatusCode(), hce.getResponseBodyAsString());
+            if (hce.getResponseBodyAsString().contains("code") && hce.getResponseBodyAsString().contains("description")) {
+                try {
+                    return mapper.readValue(hce.getResponseBodyAsString(), MAP_TYPE);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                throw new RuntimeException("Client error refunding transaction");
+            }
         } catch (JsonProcessingException e) {
             logger.error("Unable to parse instruction response", e);
             throw new RuntimeException(e);

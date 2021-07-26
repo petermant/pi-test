@@ -46,4 +46,14 @@ public class PaymentService {
 
         return transactionClient.releaseTransaction(tx);
     }
+
+    public HashMap<String, Object> refund(Transaction tx) {
+        logger.debug("Requesting refund for transaction {} for refund amount {}", tx.getId(), tx.getAmount());
+
+        HashMap<String, Object> response = transactionClient.refund(tx);
+
+        logger.debug("Successfully refunded {} from transaction {}", tx.getAmount(), tx.getId());
+
+        return response;
+    }
 }

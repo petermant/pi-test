@@ -3,6 +3,7 @@ package org.example.controllers;
 import org.example.client.MerchantSessionClient;
 import org.example.client.TransactionClient;
 import org.example.client.dtos.transaction.CredentialType;
+import org.example.client.dtos.transaction.TransactionRequestDTO;
 import org.example.client.dtos.transaction.TransactionResponseDTO;
 import org.example.model.Transaction;
 import org.example.repository.TransactionRepository;
@@ -159,6 +160,46 @@ public class CompletePurchaseController {
                 model.addAttribute("errorCode", -1);
                 model.addAttribute("errorMessage", "Transaction cannot be released unless it is deferred: " +t.get());
                 return "api-error";
+            }
+        } else {
+            return "purchase-not-found";
+        }
+    }
+
+    @PostMapping(path = "/complete-purchase/refund/{transactionId}", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+    public String completePurchaseRefund(@PathVariable("transactionId") UUID transactionId, @RequestParam("amount") String refundAmountStr, Model model) {
+        logger.debug("Complete purchase with refund, called with transactionId {}", transactionId);
+
+        Optional<Transaction> t = transactionRepo.findById(transactionId);
+
+        if (refundAmountStr.equals("")) {
+            model.addAttribute("errorCode", -1);
+            model.addAttribute("errorMessage", "Amount was blank");
+            return "api-error";
+        }
+
+        if (t.isPresent()) {
+            Transaction tx = t.get();
+
+            long refundAmount = AmountConverter.parseAmount(refundAmountStr);
+            Transaction refundTx = new Transaction("Refund", null, refundAmount, false);
+            refundTx.setOpayoTransactionId(tx.getOpayoTransactionId());
+            refundTx.setReferenceTransactionId(tx.getOpayoTransactionId());
+            refundTx = transactionRepo.save(refundTx);
+
+            HashMap<String, Object> response = paymentService.refund(refundTx);
+
+            if (response.containsKey("code") && response.containsKey("description")) {
+                model.addAttribute("errorCode", response.get("code"));
+                model.addAttribute("errorMessage", response.get("description"));
+                return "api-error";
+            } else {
+                refundTx.setTransactionType(tx.getAmount() == refundAmount ? "Refunded" : "Partially refunded");
+                refundTx.setAmount(-refundAmount);
+                transactionRepo.save(refundTx);
+                logger.debug("Purchase refunded, redirecting to purchase completed.");
+
+                return "redirect:/purchase-completed?myTransactionId=" + tx.getId();
             }
         } else {
             return "purchase-not-found";

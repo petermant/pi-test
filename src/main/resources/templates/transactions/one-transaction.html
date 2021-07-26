@@ -41,7 +41,11 @@
     <p th:if="${tx.reusable}"><a th:href="'/purchase/repeat/' + ${tx.id}">Repeat transaction</a></p>
     <form th:action="'/complete-purchase/release/' + ${tx.id}" method="post">
         <button type="submit" class="btn-link">Release deferred transaction</button>
-
+    </form>
+    <p>&nbsp;</p>
+    <form th:action="'/complete-purchase/refund/' + ${tx.id}" method="post">
+        <input type="text" name="amount" placeholder="10.00" inputmode="decimal" style="width: 50px">
+        <button type="submit" class="btn-link">Refund transaction</button>
     </form>
 
 </main>

@@ -33,6 +33,20 @@ public class TransactionRequestDTO {
         this.referenceTransactionId = t.getReferenceTransactionId();
     }
 
+    /**
+     * Constructor for refunds. Probably ought to be different class but I'm lazy today.
+     */
+    public TransactionRequestDTO(Transaction t) {
+        transactionType = "Refund";
+        paymentMethod = null;
+        vendorTxCode = t.getId();
+        amount = t.getAmount();
+        description = "Refund for demo app tx for " + amount;
+        strongCustomerAuthentication = null;
+        credentialType = null;
+        referenceTransactionId = t.getOpayoTransactionId();
+    }
+
     public String getTransactionType() {
         return transactionType;
     }
